@@ -1,19 +1,46 @@
-// @ts-check
-const { test, expect } = require('@playwright/test');
+const { test, expect, chromium } = require("@playwright/test");
+const user = require("../user");
 
-test('has title', async ({ page }) => {
-  await page.goto('https://playwright.dev/');
+("Should Successful Auth", async () => {
+  const browser = await chromium.launch({
+    headless: false,
+    slowMo: 4000,
+    devtools: false
+  });
+  const page = await browser.newPage();
 
-  // Expect a title "to contain" a substring.
-  await expect(page).toHaveTitle(/Playwright/);
-});
+  await page.goto("https://netology.ru/?modal=sign_in", {waitUntil: 'domcontentloaded', timeout: 45000});
+  await page.click('input[name="email"]');
+  await page.fill('input[name="email"]', getEmail());
+  await page.click('input[name="password"]');
+  await page.fill('input[name="password"]', getPass());
+  await page.click('button[data-testid="login-submit-btn"]');
 
-test('get started link', async ({ page }) => {
-  await page.goto('https://playwright.dev/');
+   //assertion
+  await expect(page.url()).toBe("https://netology.ru/profile");
+  await expect(page.locator("h2")).toHaveText("Мои курсы и профессии");
 
-  // Click the get started link.
-  await page.getByRole('link', { name: 'Get started' }).click();
+  await browser.close();
+})();
 
-  // Expects the URL to contain intro.
-  await expect(page).toHaveURL(/.*intro/);
-});
+("Should not successful auth", async () => {
+  const browser = await chromium.launch({
+    headless: false,
+    slowMo: 4000,
+    devtools: false
+  });
+  const page = await browser.newPage();
+
+  await page.goto("https://netology.ru/?modal=sign_in", {waitUntil: 'domcontentloaded', timeout: 45000});
+  await page.click('input[name="email"]');
+  await page.fill('input[name="email"]', getRandomE());
+  await page.click('input[name="password"]');
+  await page.fill('input[name="password"]', getRandomPass());
+  await page.click('button[data-testid="login-submit-btn"]');
+
+   //assertion
+  await expect(page.locator("data-testid=login-error-hint")).toContainText("Вы ввели неправильно логин или пароль");
+  
+
+  await browser.close();
+})();
